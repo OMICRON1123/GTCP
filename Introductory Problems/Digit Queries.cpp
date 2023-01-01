@@ -35,12 +35,7 @@ int main() {
         }
         int u;
         k -= idx > 0 ? power[idx-1]+1 : 0;
-        for (int i=0;i<idx+1;i++) {
-            if (k%(idx+1) == i%(idx+1)){
-                u = i;
-                break;
-            }
-        }
+        u = k%(idx+1);
         aux = 1;
         for (int i=0;i<idx;i++) {
             aux *= 10;
