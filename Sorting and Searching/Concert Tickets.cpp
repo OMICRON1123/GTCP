@@ -24,11 +24,9 @@ int main() {
         }
         else {
             it = prev(it);
-            int aux = *it;
-            printf("%d\n",aux);
-            h.erase(it);
-            if (--rep[aux] > 0) {
-                h.insert(aux);
+            printf("%d\n",*it);
+            if (--rep[*it] == 0) {
+                h.erase(it);
             }
         }
     }
