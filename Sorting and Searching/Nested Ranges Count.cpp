@@ -5,6 +5,29 @@ using namespace __gnu_pbds;
 
 typedef tree<int,null_type,less_equal<int>,rb_tree_tag,tree_order_statistics_node_update> indexed_multiset;
 
+/*
+La lógica de este ejercicio es bastante similar al de Nested Ranges Check. Para ver
+cuánto intervalos contiene un intervalo lo primero que se hace es ordenar de la misma
+manera que en el anterior ejercicio pero en vez de mantener una variable que mantiene
+el mayor extremo inicial en este caso se van a ir guardando todos los extremos
+iniciales anteriores en un multiset indexado y luego con ayuda del order_of_key("extremo inicial actual") se
+puede saber cuántos elementos tienen un extremo inicial menor al actual y entonces
+la cantidad actual menos este número dará la cantidad de intervalos que contiene
+el actual.
+Similarmente para saber por cuántos intervalos es contenido un intervalor, se ordena
+de la misma manera que el ejercicio anterior pero en este se mantiene un multiset indexado
+que mantiene los extremos finales de los intervalos ya examinados, luego hacemos
+order_of_key("estremo final actual") y esto nos dará cuánto intervalos anteriores tienen
+un extremo final menor al actual, si restamos la cantidad actual de intervalos examinados
+menos este número nos dará la cantidad de intervalos que tienen extremo final mayor o
+igual al actual, es decir la cantidad de intervalos en los que está contenido.
+Nótese que esto funciona debido a la manera de ordenar ya que en el primer caso
+ningún intervalo después de los ya examinado es contenido por el actual ya que
+su extremo final es mayor mientras que en el segundo caso ningún intervalo siguiente
+al actual puede contener a este ya que su extremo inicial es mayor y en caso de
+ser igual su extremo final es menor.
+*/
+
 int main() {
     int n;
     indexed_multiset init,last;
