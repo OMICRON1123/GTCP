@@ -1,24 +1,32 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const long long oo = 1e4;
+/*
+Este ejercicio se puede hacer con DFS, guardando cuánto es la suma hasta
+algún nodo, cuando se llega nuevamente al nodo, se vuelve a revisar si
+la suma actual menos la anterior que estaba almacenada en ese nodo es negativa.
+Si es así, es porque se encontró un ciclo negativo entonces se procede
+a guardarlo, el DFS se tiene que lanzar desde cada nodo para comprobar
+todas las opciones posibles.
+*/
 
-bool ok = 0,print = 0;
-vector<bool> visdfs;
+const int oo = 2e9;
+const long long ooll = 1e17;
+
+bool ok,print;
+vector<bool> visited;
 vector<int> cycle;
 vector<long long> sums;
 vector<vector<pair<int,int>>> graph;
 
 void DFS(int node,long long sum) {
-    printf("%d %lld\n",node,sum);
-    if (visdfs[node] && sum-sums[node] < 0) {
-        //printf("I am here\n");
-        cycle.push_back(node);
+    if (visited[node] && sum - sums[node] < 0) {
         ok = print = 1;
+        cycle.push_back(node);
         return;
     }
-    if (visdfs[node]) return;
-    visdfs[node] = 1;
+    if (visited[node]) return;
+    visited[node] = 1;
     sums[node] = sum;
     for (int i=0;i<graph[node].size();i++) {
         if (ok) break;
@@ -26,79 +34,52 @@ void DFS(int node,long long sum) {
     }
     if (print) {
         cycle.push_back(node);
-        if (node == cycle[0]) {
-            print = 0;
-        }
+        if (node == cycle[0]) print = 0;
     }
+    sums[node] = -ooll;
 }
 
 int main() {
     int n,m;
     scanf("%d%d",&n,&m);
-    visdfs= vector<bool>(n+1);
-    sums = vector<long long>(n+1,-oo);
+    visited = vector<bool>(n+1);
+    sums =  vector<long long>(n+1,-ooll);
     graph = vector<vector<pair<int,int>>>(n+1);
-    vector<bool> visited(n+1);
-    vector<long long> dist(n+1,oo),auxdist(n+1,oo);
-    vector<tuple<int,int,int>> edges(m);
-    for (int i=0;i<m;i++) {
+    vector<set<pair<int,int>>> graphaux(n+1);
+    while (m--) {
         int a,b,c;
         scanf("%d%d%d",&a,&b,&c);
-        edges[i] = make_tuple(a,b,c);
-        graph[a].push_back({b,c});
+        if (graphaux[a].empty()) {
+            graphaux[a].insert({b,c});
+        }
+        else {
+            auto it = graphaux[a].lower_bound({b,-oo});
+            if (it->first != b)  {
+                graphaux[a].insert({b,c});
+            }
+            else if (it->second > c) {
+                graphaux[a].erase(it);
+                graphaux[a].insert({b,c});
+            }
+        }
     }
     for (int i=1;i<=n;i++) {
-        sort(graph[i].begin(),graph[i].end());
-        vector<pair<int,int>> aux;
-        for (int j=0;j<graph[i].size();j++) {
-            if (j == 0 || graph[i][j].first != graph[i][j-1].first) {
-                aux.push_back(graph[i][j]);
-            }
-        }
-        graph[i] = aux;
-    }/*
+        graph[i].assign(graphaux[i].begin(),graphaux[i].end());
+    }
     for (int i=1;i<=n;i++) {
-        printf("%d:",i);
-        for (int j=0;j<graph[i].size();j++) {
-            printf(" {%d,%d}",graph[i][j].first,graph[i][j].second);
-        }
-        printf("\n");
-    }*/
-    for (int t=1;t<=n;t++) {
         if (ok) break;
-        if (visited[t]) continue;
-        visited[t] = 1;
-        dist[t] = 0;
-        for (int i=0;i<n+1;i++) {
-            for (int j=0;j<m;j++) {
-                int a,b,c;
-                tie(a,b,c) = edges[j];
-                if (dist[a] != oo) dist[b] = min(dist[b],dist[a]+c);
-            }
-            if (i == n-1) {
-                auxdist = dist;
-            }
-        }
-        //for (int i=1;i<=n;i++) printf("%lld ",dist[i]); printf("\n");
-        //for (int i=1;i<=n;i++) printf("%lld ",auxdist[i]); printf("\n");
-        for (int i=1;i<=n;i++) {
-            if (ok) break;
-            if (dist[i] != oo) visited[i] = 1;
-            if (auxdist[i] != dist[i]) {
-                DFS(i,0);
-            }
-            fill(visdfs.begin(),visdfs.end(),0);
-            fill(sums.begin(),sums.end(),-oo);
-        }
-        fill(dist.begin(),dist.end(),oo);
+        DFS(i,0);
+        fill(visited.begin(),visited.end(),0);
     }
     if (ok) {
         printf("YES\n");
-        reverse(cycle.begin(),cycle.end());
         printf("%d",cycle[0]);
-        for (int i=1;i<cycle.size();i++) printf(" %d",cycle[i]);
-        printf("\n");
+        for (int i=cycle.size()-2;i>=0;i--) {
+            printf(" %d",cycle[i]);
+        }
     }
-    else printf("NO\n");
+    else {
+        printf("NO\n");
+    }
     return 0;
 }
