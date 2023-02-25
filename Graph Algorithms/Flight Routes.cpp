@@ -1,12 +1,25 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-
+/*
+Para este ejercicio se modifica el algoritmo de Dijkstra, ahora en vez
+de tener un arreglo que almacena números que indican la distancia más corta,
+se tiene un arreglo que almacena conjuntos con las distancias (varias) más
+cortas. Se tiene un arreglo auxiliar que almacena distancias que se pueden
+usar más adelante, ahora el concepto de visitad no aplica ya que un nodo
+se puede visitar varias veces para obtener todas las distancias, lo que se
+tiene es que si un nodo no tiene distancias disponibles para usar entonces
+sencillamente ya no se recorre. Tener en cuenta que el conjunto de distancias
+puede ser de por mucho k elementos, cuando se tiene una nueva distancia
+que es mayor a la mayor distancia del nodo y el nodo ya tiene sus k distancias
+completadas pues sencillamente esta no se agrega al conjunto de distancias
+disponibles, así es como este arreglo se va quedando vacío a medida que
+pasa el tiempo.
+*/
 
 int main() {
     int n,m,k;
     scanf("%d%d%d",&n,&m,&k);
-    vector<int> visited(n+1);
     vector<multiset<long long>> dist(n+1),auxdist(n+1);
     vector<vector<pair<int,int>>> graph(n+1);
     for (int i=0;i<m;i++) {
@@ -19,34 +32,22 @@ int main() {
     priority_queue<pair<long long,int>> q;
     q.push({0,1});
     while (!q.empty()) {
-        /*for (int i=1;i<n+1;i++) {
-            printf("{");
-            for (auto it=dist[i].begin();it!=dist[i].end();it++) {
-                //printf("%lld ",*it);
-            }
-            printf("}\n");
-        }*/
         int node = q.top().second;
         q.pop();
-        if (visited[node] >= k || auxdist[node].empty()) continue;
-        visited[node]++;
-        //printf("Node: %d\n",node);
+        if (auxdist[node].empty()) continue;
         for (int i=0;i<graph[node].size();i++) {
-            //printf("    node: %d\n",graph[node][i].first);
             q.push({-(*auxdist[node].begin()+graph[node][i].second),graph[node][i].first});
             for (auto it=auxdist[node].begin();it!=auxdist[node].end();it++) {
-                //printf("    HI\n");
                 if (dist[graph[node][i].first].size() < k || dist[graph[node][i].first].upper_bound(*it+graph[node][i].second) != dist[graph[node][i].first].end()){
                     dist[graph[node][i].first].insert(*it+graph[node][i].second);
+                    auxdist[graph[node][i].first].insert(*it+graph[node][i].second);
                 }
-                //printf("    HELLO");
                 if (dist[graph[node][i].first].size() > k) {
                     dist[graph[node][i].first].erase(prev(dist[graph[node][i].first].end()));
                 }
-                auxdist[graph[node][i].first].insert(*it+graph[node][i].second);
-                if (auxdist[graph[node][i].first].size() > k)
+                if (auxdist[graph[node][i].first].size() > k){
                     auxdist[graph[node][i].first].erase(prev(auxdist[graph[node][i].first].end()));
-                //printf("    I am here\n");
+                }
             }
         }
         auxdist[node].clear();
