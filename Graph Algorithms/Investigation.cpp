@@ -1,50 +1,52 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const long long MOD = 1e9+7;
+/*
+Aplicar Dijkstra pero llevando de control de la cantidad de maneras de llegar, del
+mínimo y máximo número de vuelos en otros arreglos.
+*/
+
 const long long oo = 1e17;
-
-vector<vector<pair<int,int>>> graph1,graph2;
-
-
-vector<map<long long,long long>> memo; //first es longitud, second es cantidad de formas
-long long dp(int node,long long val) {
-    if (val < 0) return 0;
-    if (memo[node].find(val) != memo[node].end()) return memo[node][val];
-    memo[node].insert({val,0});
-    for (int i=0;i<graph2[node].size();i++) {
-        memo[node][val] += memo[graph2[node][i].first][val-graph2[node][i].second];
-    }
-    return memo[node][val];
-}
+const long long MOD = 1e9+7;
 
 int main() {
     int n,m;
     scanf("%d%d",&n,&m);
-    graph1 = graph2 = vector<vector<pair<int,int>>>(n+1);
-    vector<bool> visited(n+1);
-    vector<long long> dist(n+1,oo);
-    while(m--) {
+    vector<vector<pair<int,int>>> graph(n+1);
+    vector<bool> visited(n+1,0);
+    vector<long long> dist(n+1,oo),fly(n+1,0),minf(n+1,oo),maxf(n+1,-1);
+    while (m--) {
         int a,b,c;
         scanf("%d%d%d",&a,&b,&c);
-        graph1[a].push_back({b,c});
-        graph2[b].push_back({a,c});
+        graph[a].push_back({b,c});
     }
     priority_queue<pair<long long,int>> q;
-    q.push({0,1});
     dist[1] = 0;
-    while (!q.empty()) {
+    fly[1] = 1;
+    minf[1] = 0;
+    maxf[1] = 0;
+    q.push({0,1});
+    while(!q.empty()) {
         int node = q.top().second;
         q.pop();
         if (visited[node]) continue;
         visited[node] = 1;
-        for (int i=0;i<graph1[node].size();i++) {
-            int f = graph1[node][i].first,d = graph1[node][i].second;
-            dist[f] = min(dist[f],dist[node]+d);
-            q.push({-min(dist[f],dist[node]+d),graph1[node][i].first});
+        for (int i=0;i<graph[node].size();i++) {
+            q.push({-(dist[node]+graph[node][i].second),graph[node][i].first});
+            if (dist[graph[node][i].first] > dist[node] + graph[node][i].second) {
+                dist[graph[node][i].first] = dist[node] + graph[node][i].second;
+                fly[graph[node][i].first] = fly[node];
+                minf[graph[node][i].first] = minf[node]+1;
+                maxf[graph[node][i].first] = maxf[node]+1;
+            }
+            else if (dist[graph[node][i].first] == dist[node] + graph[node][i].second) {
+                fly[graph[node][i].first] += fly[node];
+                fly[graph[node][i].first] %= MOD;
+                minf[graph[node][i].first] = min(minf[graph[node][i].first],minf[node]+1);
+                maxf[graph[node][i].first] = max(maxf[graph[node][i].first],maxf[node]+1);
+            }
         }
     }
-    memo[1].insert({0,1});
-    memo[n][dist[n]] = dp(n,dist[n]);
+    printf("%lld %lld %lld %lld\n",dist[n],fly[n],minf[n],maxf[n]);
     return 0;
 }
